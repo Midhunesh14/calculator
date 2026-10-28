@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: calculator-config
+  namespace: default
+  labels:
+    app: calculator-web
+data:
+  APP_TITLE: "Calculator Web App"
+  ENVIRONMENT: "Production"
+  DEMO_MODE: "enabled"
+  WELCOME_MESSAGE: "Welcome to the Agile DevOps Calculator Demonstration"

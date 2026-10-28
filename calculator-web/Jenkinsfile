@@ -1,0 +1,131 @@
+pipeline {
+    agent any
+
+    environment {
+        KUBECONFIG = 'C:\\jenkins-kube\\config'
+        APP_NAME = 'calculator-web'
+        K8S_NAMESPACE = 'default'
+        DOCKER_IMAGE = 'midhunesh/calculator-web:latest'
+    }
+
+    stages {
+        stage('Checkout Source') {
+            steps {
+                echo 'Checking out source code from GitHub repository...'
+                checkout scm
+            }
+        }
+
+        stage('Verify Tools') {
+            steps {
+                echo 'Verifying required CLI tools on Windows Jenkins agent...'
+                bat '''
+                    git --version
+                    docker --version
+                    kubectl version --client
+                    kubectl config current-context
+                '''
+            }
+        }
+
+        stage('Validate Project Files') {
+            steps {
+                echo 'Validating presence of mandatory project files...'
+                bat '''
+                    if not exist index.html (echo Error: index.html missing & exit /b 1)
+                    if not exist style.css (echo Error: style.css missing & exit /b 1)
+                    if not exist script.js (echo Error: script.js missing & exit /b 1)
+                    if not exist Dockerfile (echo Error: Dockerfile missing & exit /b 1)
+                    if not exist k8s\\deployment.yaml (echo Error: k8s\\deployment.yaml missing & exit /b 1)
+                    if not exist k8s\\service.yaml (echo Error: k8s\\service.yaml missing & exit /b 1)
+                    echo All required project files verified successfully.
+                '''
+            }
+        }
+
+        stage('Verify Kubernetes Access') {
+            steps {
+                echo 'Verifying connection to Kubernetes cluster using KUBECONFIG...'
+                bat '''
+                    kubectl get nodes
+                    kubectl get namespaces
+                '''
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                echo 'Building Docker image: %DOCKER_IMAGE%...'
+                bat 'docker build -t %DOCKER_IMAGE% .'
+            }
+        }
+
+        stage('Authenticate Docker Hub') {
+            steps {
+                echo 'Authenticating with Docker Hub using Jenkins credential (docker-new)...'
+                withCredentials([usernamePassword(credentialsId: 'docker-new', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                    bat 'echo %DOCKER_PASS% | docker login --username %DOCKER_USER% --password-stdin'
+                }
+            }
+        }
+
+        stage('Push Docker Image') {
+            steps {
+                echo 'Pushing Docker image to Docker Hub registry...'
+                bat 'docker push %DOCKER_IMAGE%'
+            }
+        }
+
+        stage('Deploy to Kubernetes') {
+            steps {
+                echo 'Applying Kubernetes manifests to cluster...'
+                bat '''
+                    kubectl apply -f k8s/namespace.yaml
+                    kubectl apply -f k8s/configmap.yaml
+                    kubectl apply -f k8s/pvc.yaml
+                    kubectl apply -f k8s/deployment.yaml
+                    kubectl apply -f k8s/service.yaml
+                '''
+            }
+        }
+
+        stage('Wait for Deployment') {
+            steps {
+                echo 'Waiting for Kubernetes deployment rollout to complete...'
+                bat 'kubectl rollout status deployment/%APP_NAME% --namespace=%K8S_NAMESPACE% --timeout=180s'
+            }
+        }
+
+        stage('Verify Application Resources') {
+            steps {
+                echo 'Inspecting deployed Kubernetes resources and endpoints...'
+                bat '''
+                    kubectl get deployments --namespace=%K8S_NAMESPACE%
+                    kubectl get pods --selector=app=calculator-web --namespace=%K8S_NAMESPACE%
+                    kubectl get services --namespace=%K8S_NAMESPACE%
+                    kubectl describe service calculator-web-service --namespace=%K8S_NAMESPACE%
+                '''
+            }
+        }
+    }
+
+    post {
+        success {
+            echo '==================================================='
+            echo 'SUCCESS: CI/CD Pipeline completed successfully!'
+            echo 'Calculator Web App is deployed and accessible.'
+            echo 'Access via NodePort: http://localhost:30080'
+            echo '==================================================='
+        }
+        failure {
+            echo '==================================================='
+            echo 'FAILURE: Pipeline encountered an error.'
+            echo 'Please review the stage logs and troubleshooting guide.'
+            echo '==================================================='
+        }
+        always {
+            echo 'Cleaning up Docker login session for security...'
+            bat 'docker logout || true'
+        }
+    }
+}

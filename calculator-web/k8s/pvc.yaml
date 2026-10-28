@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: calculator-pvc
+  namespace: default
+  labels:
+    app: calculator-web
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+  # Uses default storage class configured in Docker Desktop Kubernetes (hostpath)

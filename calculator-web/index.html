@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculator Web App — DevOps Demonstration</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        <header class="app-header">
+            <h1>Calculator Web App</h1>
+            <p class="subtitle">Agile Development & DevOps — Kubernetes & Jenkins CI/CD</p>
+        </header>
+
+        <main class="calculator-container">
+            <div class="calculator" role="region" aria-label="Calculator">
+                <div class="display" role="status" aria-live="polite">
+                    <div id="previous-operand" class="previous-operand"></div>
+                    <div id="current-operand" class="current-operand">0</div>
+                </div>
+                <div class="buttons-grid">
+                    <button class="btn function" id="clear" data-action="clear" aria-label="Clear all">AC</button>
+                    <button class="btn function" id="delete" data-action="delete" aria-label="Delete last character">DEL</button>
+                    <button class="btn function" id="percent" data-action="percent" aria-label="Percentage">%</button>
+                    <button class="btn operator" id="divide" data-action="operator" data-value="/" aria-label="Divide">÷</button>
+
+                    <button class="btn number" data-value="7" aria-label="7">7</button>
+                    <button class="btn number" data-value="8" aria-label="8">8</button>
+                    <button class="btn number" data-value="9" aria-label="9">9</button>
+                    <button class="btn operator" id="multiply" data-action="operator" data-value="*" aria-label="Multiply">×</button>
+
+                    <button class="btn number" data-value="4" aria-label="4">4</button>
+                    <button class="btn number" data-value="5" aria-label="5">5</button>
+                    <button class="btn number" data-value="6" aria-label="6">6</button>
+                    <button class="btn operator" id="subtract" data-action="operator" data-value="-" aria-label="Subtract">-</button>
+
+                    <button class="btn number" data-value="1" aria-label="1">1</button>
+                    <button class="btn number" data-value="2" aria-label="2">2</button>
+                    <button class="btn number" data-value="3" aria-label="3">3</button>
+                    <button class="btn operator" id="add" data-action="operator" data-value="+" aria-label="Add">+</button>
+
+                    <button class="btn function" id="sign" data-action="sign" aria-label="Toggle positive negative">±</button>
+                    <button class="btn number" data-value="0" aria-label="0">0</button>
+                    <button class="btn number" data-value="." aria-label="Decimal point">.</button>
+                    <button class="btn equals" id="equals" data-action="equals" aria-label="Calculate result">=</button>
+                </div>
+            </div>
+        </main>
+
+        <footer class="app-footer">
+            <p>Docker & Kubernetes DevOps Lab Demonstration &bull; NGINX Containerized</p>
+        </footer>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
